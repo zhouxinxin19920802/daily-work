@@ -1,0 +1,58 @@
+# -*- coding: UTF-8 -*-
+import math
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+df=pd.read_excel("data.xlsx")
+
+print(df)
+#计算sn
+sn=0
+for column in df.columns:
+    sn=df[column].sum()+sn
+#计算se
+se=1
+for column in df.columns:
+    for index_s in df.index:
+        se=math.log(df[column][index_s])*se
+
+#计算sx
+sx=0
+for column in df.columns:
+    sum_columa=df[column].sum()
+    for index_s in df.index:
+        sx=sx+sum_columa*df[column][index_s]
+
+
+
+
+#梯度函数
+c_i_j=5
+def jacobian(x):
+    S_0_1=0
+    S_0_1_front=0
+    for column in df.columns:
+        sum=df[column].sum()
+        #计算s_a_b
+        s=math.exp(-x[0]*x[1]*sum)
+        s1=0
+        s2=0
+        #计算失效的总个数
+        invalid_number=df['value'].sum()
+        #计算一个应力水平下，所在列空的个数
+        is_nan=df['value'].isna().sum()
+        #计算一个应力水平下总的样本数
+        total=df.shape[0]-is_nan
+        #计算S_a_b后半部分的第一项
+        for index_s in df.index:
+            s1=math.pow(df[column][index_s],x[0])*math.log(df[column][index_s])+s1
+        #计算计算S_a_b后半部分的第二项
+        m_i=total-invalid_number
+        for i in range(m_i):
+            time=df[column].index[df[column].apply(np.isnan)]
+            s2=math.exp(time,x[0])*math.log(time)+s2
+        S_0_1=s*(s1+s2)
+    return S_0_1
+
